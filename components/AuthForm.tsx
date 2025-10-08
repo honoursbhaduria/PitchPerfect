@@ -11,9 +11,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import FormField from './FormField';
+import { useRouter } from 'next/navigation';
 
-// You need to define FormType
+
+
+// defined form type here 
+
 type FormType = 'sign-in' | 'sign-up';
+
+// schema of the form 
 
 const authFormSchema = (type: FormType) => {
   return z.object({
@@ -23,7 +29,10 @@ const authFormSchema = (type: FormType) => {
   });
 };
 
+
 const AuthForm = ({ type }: { type: FormType }) => {
+  const router = useRouter();
+
   const formSchema = authFormSchema(type);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -38,17 +47,20 @@ const AuthForm = ({ type }: { type: FormType }) => {
   const isSignIn = type === 'sign-in';
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    try {
-      if (type === 'sign-in') {
-        console.log("SIGN IN", values);
-      } else {
-        console.log("SIGN UP", values);
-      }
-    } catch (error: any) {
-      console.log(error);
-      toast.error(`There was an error: ${error}`);
+  try {
+    if (type === 'sign-up') {
+      toast.success('Account created successfully. Please sign in.');
+      router.push('/sign-in');
+    } else {
+      toast.success('Signed in successfully.');
+      router.push('/');
+    }
+  } catch (error: any) {
+    console.log(error);
+    toast.error(`There was an error: ${error.message || error}`);
     }
   };
+
 
   return (
     <div className="card-border lg:min-w-[566px]">
