@@ -1,7 +1,9 @@
 import React from 'react';
 import dayjs from 'dayjs';
 import Image from 'next/image';
-import { getRandomInterviewCover } from '@/public/utils';
+import Link from 'next/link';
+import { getRandomInterviewCover } from '@/lib/utils';
+import { getTechLogos } from '@/lib/utils';
 
 
 const InterviewCard = ({ interviewId, userId, role, type, techstack, createdAt }: InterviewCardProps) => {
@@ -32,10 +34,33 @@ const InterviewCard = ({ interviewId, userId, role, type, techstack, createdAt }
 
             <div className='flex flex-row gap-5 mt-3  '>
               <div className='flex flex-row gap-2 '>
+                  <Image src="/calendar.svg" alt='calender' width={22} height={22}></Image>
+                  <p>{formattedDate}</p>
+              </div>
+
+              <div className='flex flex-row gap-2 items-center'>
+                <Image src='/star.svg' alt='star' width={22} height={22}></Image>
+                <p>{feedback?. totalScore || '---' }/100</p>
 
               </div>
  
             </div>
+
+            <p className='line-clamp-2 mt-5 '>  
+                {feedback?. finalAssessment || "you haven't taken the interview yet . Take it now to improve your skills."}
+            </p>
+
+
+
+        </div>
+
+        <div className='flex flex-row justify-between '>
+          <p>Tech Icons</p>
+          <button className='btn-primary'>
+          <Link href={feedback ? `/interview/${interviewId}/feedback` : `/interview/${interviewId}`}> {feedback? 'check Feedback' : 'View Interview'}</Link>
+
+          </button>
+          
 
         </div>
       </div>
