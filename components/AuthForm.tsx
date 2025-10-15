@@ -12,6 +12,10 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import FormField from './FormField';
 import { useRouter } from 'next/navigation';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/firebase/client';
+import { Sign } from 'crypto';
+import { SignUp } from '@/lib/actions/auth.action';
 
 
 
@@ -46,9 +50,26 @@ const AuthForm = ({ type }: { type: FormType }) => {
 
   const isSignIn = type === 'sign-in';
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
   try {
     if (type === 'sign-up') {
+      const { Name, Email, Password } = values; 
+
+      // Create user with Firebase Auth
+      const userCredentials = await createUserWithEmailAndPassword(auth, Email, Password);
+
+      const result = await SignUp({
+        uid: userCredentials.user.uid,
+        name: Name!,
+        email: Email,
+        password: Password,
+      });
+
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
+
       toast.success('Account created successfully. Please sign in.');
       router.push('/sign-in');
     } else {
@@ -58,8 +79,8 @@ const AuthForm = ({ type }: { type: FormType }) => {
   } catch (error: any) {
     console.log(error);
     toast.error(`There was an error: ${error.message || error}`);
-    }
-  };
+  }
+};
 
 
   return (
