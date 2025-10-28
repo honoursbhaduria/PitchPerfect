@@ -6,16 +6,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+// import { Input } from '@/components/ui/input';
 import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import FormField from './FormField';
 import { useRouter } from 'next/navigation';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/firebase/client';
-import { Sign } from 'crypto';
-import { SignUp } from '@/lib/actions/auth.action';
+// import { Sign } from 'crypto';
+import { SignIn, SignUp } from '@/lib/actions/auth.action';
 
 
 
@@ -73,6 +73,22 @@ const AuthForm = ({ type }: { type: FormType }) => {
       toast.success('Account created successfully. Please sign in.');
       router.push('/sign-in');
     } else {
+        const { Email, Password } = values;
+
+        const userCredentials = await signInWithEmailAndPassword(auth , Email, Password)
+        
+        const idToken = await userCredentials.user.getIdToken();
+        if (!idToken ){
+          toast.error('sign in failed ')
+          return;
+        }
+
+        await SignIn({
+          email: Email,
+          idToken,
+        });
+
+
       toast.success('Signed in successfully.');
       router.push('/');
     }
