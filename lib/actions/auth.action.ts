@@ -1,6 +1,5 @@
-'use server';
-import { auth, db } from '@/firebase/admin'; 
-import { doc, getDoc, setDoc } from 'firebase/firestore'; 
+"use server";
+import { auth, db } from '@/firebase/admin';
 import { cookies } from 'next/headers';
 
 
@@ -15,21 +14,21 @@ export async function SignUp(params: SignUpParams): Promise<SignUpResult> {
   const { uid, name, email } = params;
 
   try {
-    const userRef = doc(db, 'users', uid);
-    const userRecord = await getDoc(userRef);
+    const userRef = db.collection('users').doc(uid);
+    const userRecord = await userRef.get();
 
-    if (userRecord.exists()) {
+    if (userRecord.exists) {
       return {
         success: true,
         message: 'Account already exists please sign in instead',
       };
     }
 
-    await setDoc(userRef, { name, email });
+    await userRef.set({ name, email });
 
     return {
       success: true,
-      message: 'Account created successfully',
+      message: 'Account created successfully please sign in ',
     };
   } catch (e: any) {
     console.error('Error creating a user:', e);
@@ -78,7 +77,7 @@ export async function SignIn(params: SignInParams): Promise<{ success: boolean; 
 }
 
 export async function setSessionCookie(idToken: string) {
-  const cookieStore = cookies();
+  const cookieStore = (await cookies()) as any;
 
   const sessionCookie = await auth.createSessionCookie(idToken, {
     expiresIn: ONE_WEEK * 1000,
@@ -92,3 +91,27 @@ export async function setSessionCookie(idToken: string) {
     sameSite: 'lax',
   });
 }
+
+
+// export async function getCurrentUser(): Promise<User | null> {
+//     const cookieStore = await cookies();
+
+//     const sessionCookie = cookieStore.get('session')?.value;
+
+//     if (!sessionCookie) return null;
+
+//     try {
+//         const decodedClaims = await auth.verifySessionCookie(sessionCookie , true);
+
+
+//         const userRecord = await db.collection('users').doc(decodedClaims,uid).get();
+
+//         if (!userRecord.exists) return null;
+//     } catch (e) {
+//         console.log(e)
+
+//         return null;
+//     }
+// }
+
+
