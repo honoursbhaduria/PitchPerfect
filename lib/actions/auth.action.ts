@@ -1,6 +1,9 @@
 "use server";
 import { auth, db } from '@/firebase/admin';
+import { CollectionReference, DocumentReference } from 'firebase-admin/firestore';
 import { cookies } from 'next/headers';
+import { use } from 'react';
+import { Doc } from 'zod/v4/core';
 
 
 const ONE_WEEK = 60 * 60 * 24 * 7;
@@ -104,14 +107,49 @@ export async function setSessionCookie(idToken: string) {
 //         const decodedClaims = await auth.verifySessionCookie(sessionCookie , true);
 
 
-//         const userRecord = await db.collection('users').doc(decodedClaims,uid).get();
+//         const userRecord = await db.collection('users') as CollectionReference<DocumentData, DocumentData>;
+//         .doc(decodedClaims.uid) as DocumentReference<DocumentData, DocumentData>;
 
 //         if (!userRecord.exists) return null;
-//     } catch (e) {
-//         console.log(e)
 
-//         return null;
-//     }
+//         return {
+//           ...userrecord
+//         }
 // }
 
+//     } catch (e) {
+//         console.log('Error verifying session cookie:', e);
+//         return null;
+//     }
 
+export async function getCurrentUser(): Promise<User | null> {
+  const cookieStore = await cookies();
+
+  const sessionCookie = cookieStore.get('session')?.value;
+  if (!sessionCookie) return null;
+
+  try {
+    const decodedClaims = await auth.verifySessionCookie(sessionCookie, true);
+
+    // Read the user document from Firestore (admin SDK)
+    const userRef = db.collection('users').doc(decodedClaims.uid);
+    const userSnapshot = await userRef.get();
+
+    if (!userSnapshot.exists) return null;
+
+    return {
+      ...(userSnapshot.data() as any),
+      id: userSnapshot.id,
+    } as User;
+  } catch (e) {
+    console.log(e);
+    return null;
+  }
+}
+
+
+
+export async function isAuthenticated() {
+  const user = await getCurrentUser();
+  return !!user;
+}
